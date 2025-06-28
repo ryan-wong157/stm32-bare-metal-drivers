@@ -1,0 +1,27 @@
+# CubeIDE settings and build folder
+**/.settings/
+**/Debug/
+**/Release/
+**/.cproject
+**/.project
+
+/workspace/.metadata/
+
+# build artifacts
+**/build/
+**/*.elf
+**/*.bin
+**/*.hex
+**/*.map
+**/*.lst
+**/*.o
+**/*.d
+
+# OS & editor junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.bak
+*.tmp
+*.log
