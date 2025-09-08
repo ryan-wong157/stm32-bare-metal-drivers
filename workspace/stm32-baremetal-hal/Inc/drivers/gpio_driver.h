@@ -17,17 +17,17 @@
 
 // REGISTERS --------------------------------------------------------
 #define RCC_BASE 0x40023800U
-#define RCC_AHB1ENR (*(volatile uint32_t*)(RCC_BASE + 0x30))
+#define RCC_AHB1ENR (*(volatile uint32_t*)(RCC_BASE + 0x30U))
 
 #define GPIO_BASE 0x40020000U
 #define GPIOA ((GPIO_TypeDef*)GPIO_BASE)
-#define GPIOB ((GPIO_TypeDef*)(GPIO_BASE + 0x400))
-#define GPIOC ((GPIO_TypeDef*)(GPIO_BASE + 0x800))
-#define GPIOD ((GPIO_TypeDef*)(GPIO_BASE + 0xC00))
-#define GPIOE ((GPIO_TypeDef*)(GPIO_BASE + 0x1000))
-#define GPIOF ((GPIO_TypeDef*)(GPIO_BASE + 0x1400))
-#define GPIOG ((GPIO_TypeDef*)(GPIO_BASE + 0x1800))
-#define GPIOH ((GPIO_TypeDef*)(GPIO_BASE + 0x1C00))
+#define GPIOB ((GPIO_TypeDef*)(GPIO_BASE + 0x400U))
+#define GPIOC ((GPIO_TypeDef*)(GPIO_BASE + 0x800U))
+#define GPIOD ((GPIO_TypeDef*)(GPIO_BASE + 0xC00U))
+#define GPIOE ((GPIO_TypeDef*)(GPIO_BASE + 0x1000U))
+#define GPIOF ((GPIO_TypeDef*)(GPIO_BASE + 0x1400U))
+#define GPIOG ((GPIO_TypeDef*)(GPIO_BASE + 0x1800U))
+#define GPIOH ((GPIO_TypeDef*)(GPIO_BASE + 0x1C00U))
 
 // TYPES -----------------------------------------------------------
 typedef struct {
@@ -90,10 +90,19 @@ typedef enum {
 
 
 // HAL FUNCTIONS -----------------------------------------------------------
+/**
+ * @brief enables the AHB1 peripheral clock for given port
+ * 
+ * @param port - port to enable clock for
+ * @return HAL_Status - HAL_OK or HAL_ERROR
+ */
+HAL_Status GPIO_enable_clock(GPIO_TypeDef* port);
+
 
 /**
- * @brief Init function which enables the AHB1 peripheral clock and configures given GPIO pin's settings
+ * @brief Init function which configures given GPIO pin's settings
  * 		  Use the above macros ONLY for function input
+ * 		  You MUST enable the AHB1 clock for the port you are trying to configure FIRST
  * 
  * @param port base address of GPIO port (pointing to GPIO_TypeDef struct)
  * @param pin 0-15 specifying which pin's settings to initialise
@@ -101,10 +110,10 @@ typedef enum {
  * @param otype push pull/open drain output signalling
  * @param ospeed output clock speed
  * @param pupd pullup/pulldown on pin
- * 
  * @return HAL_Status - HAL_OK or HAL_ERROR
  */
 HAL_Status GPIO_init(GPIO_TypeDef* port, GPIO_Pin pin, GPIO_Mode mode, GPIO_OType otype, GPIO_OSpeed ospeed, GPIO_Pupd pupd);
+
 
 /**
  * @brief Writes high/low to given pin at given port - USE MACROS
@@ -112,7 +121,6 @@ HAL_Status GPIO_init(GPIO_TypeDef* port, GPIO_Pin pin, GPIO_Mode mode, GPIO_OTyp
  * @param port base address of GPIO port (pointing to GPIO_TypeDef struct)
  * @param pin 0-15 specifying which pin's settings to initialise
  * @param val PIN_SET or PIN_RESET
- * 
  * @return Hal_Status - HAL_OK or HAL_ERROR
  */
 HAL_Status GPIO_write_pin(GPIO_TypeDef* port, GPIO_Pin pin, PIN_State val);

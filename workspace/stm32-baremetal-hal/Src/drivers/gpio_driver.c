@@ -12,8 +12,24 @@
 #include "drivers/gpio_driver.h"
 
 /**
+ * This is a bit hacky, I'm not sure if it's ok or not
+ * it basically assumes base addresses for all GPIO registers are 0x400 spaced (which they are for the stm32f4)
+ * I think it's fine though because that was the assumption in gpio_driver.h when assigning the addresses anyway
+ * 
+ * It also has very weak input validation and mostly requires the user to use the macros properly
+ */
+HAL_Status GPIO_enable_clock(GPIO_TypeDef* port) {
+    if ((uint32_t)port > (uint32_t)GPIOH || (uint32_t)port < (uint32_t)GPIOA) return HAL_ERROR;
+
+    uint32_t shift = ((uint32_t)port - GPIO_BASE) / 0x400U;
+    RCC_AHB1ENR |= 0x01U << shift;
+    return HAL_OK;
+}
+
+
+/**
  * I have chosen to use enums for the options for each pin configuration. 
- * This is for readability and ease of use, although they are not strict compile-time type checks 
+ * This is for readability and ease of use, although they are not strict compile-time type checks
  */
 HAL_Status GPIO_init(GPIO_TypeDef* port, GPIO_Pin pin, GPIO_Mode mode, GPIO_OType otype, GPIO_OSpeed ospeed, GPIO_Pupd pupd) {
      if (
@@ -44,7 +60,9 @@ HAL_Status GPIO_init(GPIO_TypeDef* port, GPIO_Pin pin, GPIO_Mode mode, GPIO_OTyp
     return HAL_OK;
 }
 
-
+/**
+ * Uses BSRR instead of ODR for atomic writes so it isn't interrupted by any ISR
+ */
 HAL_Status GPIO_write_pin(GPIO_TypeDef* port, GPIO_Pin pin, PIN_State val) {
     if (
          port == NULL ||
