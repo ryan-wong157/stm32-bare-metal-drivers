@@ -154,4 +154,12 @@ HAL_Status GPIO_toggle_pin(GPIO_TypeDef* port, GPIO_Pin pin);
  */
 PIN_State GPIO_read_pin(GPIO_TypeDef* port, GPIO_Pin pin);
 
+/**
+ * @brief Reads all 16 pins and writes into a 16 bit buffer pointer given. LSB = PIN0, MSB = PIN15
+ * 
+  * @param buffer - 16 bit pointer which is written into
+  * @return HAL_Status 
+ */
+HAL_Status GPIO_read_port(GPIO_TypeDef* port, uint16_t* buffer);
+
 #endif /* GPIO_DRIVER_GPIO_DRIVER_H_ */

@@ -86,7 +86,7 @@ HAL_Status GPIO_write_port(GPIO_TypeDef* port, uint16_t val) {
     if (
         port == NULL
     ) return HAL_ERROR;
-    
+
     uint16_t inv = ~val;
     port->BSRR = (uint32_t)val | ((uint32_t)(inv) << 16);
     return HAL_OK;
@@ -108,12 +108,25 @@ HAL_Status GPIO_toggle_pin(GPIO_TypeDef* port, GPIO_Pin pin) {
  */
 PIN_State GPIO_read_pin(GPIO_TypeDef* port, GPIO_Pin pin) {
     if (
-        port == NULL ||
-        pin > GPIO_PIN_15
-    ) return -1;
-
+        port == NULL
+    )
     if (port->IDR & (0x01U << pin)) {
         return PIN_SET;
     } 
     return PIN_RESET;
+}
+
+/**
+ * Again, I'm minimally checking inputs to prevent null pointer errors.
+ * I chose to use a buffer instead of just returning the 16 bit uint so i could return HAL_Status
+ */
+HAL_Status GPIO_read_port(GPIO_TypeDef* port, uint16_t* buffer) {
+    if (
+        port == NULL ||
+        buffer == NULL 
+    ) return HAL_ERROR;
+
+    // juuuust in case, i mask the 16 LSB only
+    *buffer = (uint16_t)(port->IDR & 0xFFFFU);
+    return HAL_OK;
 }
