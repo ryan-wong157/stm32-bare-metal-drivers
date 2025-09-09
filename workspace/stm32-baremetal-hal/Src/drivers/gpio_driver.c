@@ -25,7 +25,6 @@ HAL_Status GPIO_enable_clock(GPIO_Reg_TypeDef* port) {
     return HAL_OK;
 }
 
-
 /**
  * I have chosen to use enums for the options for each pin configuration. 
  * This is for readability and ease of use, although they are not strict compile-time type checks
@@ -61,14 +60,21 @@ HAL_Status GPIO_init(GPIO_Reg_TypeDef* port, GPIO_Pin pin, const GPIO_Init_TypeD
     port->PUPDR &= ~(0x03U << (pin * 2));
     port->PUPDR |= ((uint32_t)pupd << (pin * 2));
 
-    // Configure AF - depending on which pin, use low/high AF registers
-    if ((uint32_t)pin < 8) {
-        port->AFRL &= ~(0xF << (pin * 4));
-        port->AFRL |= ((uint32_t)af_mask << (pin * 4));
-    } else {
-        uint32_t new_pin = pin - 8;
-        port->AFRH &= ~(0xF << (new_pin * 4));
-        port->AFRH |= ((uint32_t)af_mask << (new_pin * 4));
+    // Configure AF - depending on which pin, use low/high AF registers only if AF mode!
+    if (mode == GPIO_MODE_AF) {
+        if ((uint32_t)pin < 8) {
+            port->AFRL &= ~(0xF << (pin * 4));
+            port->AFRL |= ((uint32_t)af_mask << (pin * 4));
+        } else {
+            uint32_t new_pin = pin - 8;
+            port->AFRH &= ~(0xF << (new_pin * 4));
+            port->AFRH |= ((uint32_t)af_mask << (new_pin * 4));
+        }
+    }
+
+    // Set default output state only if output mode!
+    if (mode == GPIO_MODE_OUTPUT) {
+        GPIO_write_pin(port, pin, init_struct->init_out_state);
     }
 
     return HAL_OK;
@@ -131,7 +137,8 @@ HAL_Status GPIO_toggle_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin) {
  */
 PIN_State GPIO_read_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin) {
     if (
-        port == NULL
+        port == NULL || 
+        pin > GPIO_PIN_15
     ) return -1;
 
     if (port->IDR & (0x01U << pin)) {

@@ -115,10 +115,11 @@ typedef enum {
  * make sure to use the above enums when setting this init struct
  * 
  * mode - pin mode (out/in/AF/analog)
- * type - push pull/open drain output signalling
- * speed - output clock speed
- * pupd - pullup/pulldown on pin
- * afx - alternate function value
+ * type - push pull/open drain output signalling (default is PP)
+ * speed - output clock speed (default is LOW)
+ * pupd - pullup/pulldown on pin (default is NONE)
+ * afx - alternate function value (default just put AF0)
+ * init_out_state - initial desired output state (only applicable if output mode)
  */
 typedef struct {
 	GPIO_Mode mode;
@@ -126,6 +127,7 @@ typedef struct {
 	GPIO_OSpeed ospeed;
 	GPIO_Pupd pupd;
 	GPIO_AFx afx;
+	PIN_State init_out_state;
 } GPIO_Init_TypeDef;
 
 

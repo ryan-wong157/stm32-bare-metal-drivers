@@ -16,10 +16,10 @@ Still to test:
 - read pin
 - read port
 - lock pins
+- AF capabilities
 */
 int main(void) {
     GPIO_test_init();
-    GPIO_write_pin(GPIOA, GPIO_PIN_5, PIN_RESET);
     // MAIN LOOP --------------------------------------------
 	for(;;) {
         GPIO_write_pin(GPIOA, GPIO_PIN_5, PIN_SET);
@@ -32,6 +32,8 @@ void GPIO_test_init() {
     init.otype = GPIO_OTYPE_PP;
     init.ospeed = GPIO_OSPEED_LOW;
     init.pupd = GPIO_PUPD_NONE;
+    init.afx = GPIO_AF0;
+    init.init_out_state = PIN_RESET;
 
     GPIO_enable_clock(GPIOA);
     GPIO_init(GPIOA, GPIO_PIN_5, &init);
