@@ -139,7 +139,39 @@ HAL_Status GPIO_read_port(GPIO_Reg_TypeDef* port, uint16_t* buffer) {
         buffer == NULL 
     ) return HAL_ERROR;
 
-    // juuuust in case, i mask the 16 LSB only
+    // juuuust in case, i mask to remove 16 MSB
     *buffer = (uint16_t)(port->IDR & 0xFFFFU);
     return HAL_OK;
+}
+
+/**
+ * Using a uint16_t pins bitmask to set the locks as my HAL doesn't currently support multi-pin input 
+ * like the STM32 HAL's PIN0 | PIN1...
+ */
+HAL_Status GPIO_lock_pins(GPIO_Reg_TypeDef* port, uint16_t pins) {
+    if (
+        port == NULL
+    ) return HAL_ERROR;
+
+    // Port LCKR already locked, must reset MCU to disable lock
+    if (port->LCKR & (0x01U << 16)) {
+        return HAL_ERROR;
+    }
+
+    // Overwrite first 15 bits with user entered desired lock bits
+    port->LCKR &= ~(0xFFFFU);
+    port->LCKR |= (uint32_t)pins;
+
+    // Activate lock (sequence is wr 1 to LCKK, wr 0 in LCKK, wr 1 to LCKK, read from LCKK)
+    port->LCKR |= (0x01U << 16);
+    port->LCKR &= ~(0x01U << 16);
+    port->LCKR |= (0x01U << 16);
+    uint32_t temp = port->LCKR;
+    (void)temp;
+
+    uint32_t is_locked = port->LCKR & (0x01U << 16);
+    if (is_locked) {
+        return HAL_OK;
+    } 
+    return HAL_ERROR;
 }

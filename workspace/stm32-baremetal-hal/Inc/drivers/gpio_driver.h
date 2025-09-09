@@ -69,6 +69,7 @@ typedef enum {
 	GPIO_PUPD_PD = 0x02U // Pull down
 } GPIO_Pupd;
 
+// Maybe in the future I will write this to support multi-pin init (using OR bitmasks)
 typedef enum {
 	GPIO_PIN_0 = 0U,
 	GPIO_PIN_1 = 1U,
@@ -175,4 +176,12 @@ PIN_State GPIO_read_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin);
  */
 HAL_Status GPIO_read_port(GPIO_Reg_TypeDef* port, uint16_t* buffer);
 
+/**
+ * @brief Locks pins configuration registers (mode, otype, ospeed, pupd, afh, afl) based on the given bitmask
+ * 
+ * @param port - port to lock pins
+ * @param pins - 16 bit bitmask which corresponds to which pins to lock configuration for. LSB = PIN0, MSB = PIN15
+ * 				 0000 1000 0001 0001 would lock pin 0, 4, 11
+ */
+HAL_Status GPIO_lock_pins(GPIO_Reg_TypeDef* port, uint16_t pins);
 #endif /* GPIO_DRIVER_GPIO_DRIVER_H_ */

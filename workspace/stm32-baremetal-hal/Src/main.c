@@ -9,7 +9,14 @@
 #include "drivers/gpio_driver.h"
 
 void GPIO_test_init();
-
+/*
+Still to test:
+- toggle
+- write port
+- read pin
+- read port
+- lock pins
+*/
 int main(void) {
     GPIO_test_init();
     GPIO_write_pin(GPIOA, GPIO_PIN_5, PIN_RESET);
