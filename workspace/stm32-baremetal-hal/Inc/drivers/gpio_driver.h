@@ -14,21 +14,21 @@
 #include <stdint.h>
 #include "drivers/types.h"
 
-// REGISTERS --------------------------------------------------------
+
+// REGISTERS ==============================================================
 #define RCC_BASE 0x40023800U
 #define RCC_AHB1ENR (*(volatile uint32_t*)(RCC_BASE + 0x30U))
 
 #define GPIO_BASE 0x40020000U
-#define GPIOA ((GPIO_TypeDef*)GPIO_BASE)
-#define GPIOB ((GPIO_TypeDef*)(GPIO_BASE + 0x400U))
-#define GPIOC ((GPIO_TypeDef*)(GPIO_BASE + 0x800U))
-#define GPIOD ((GPIO_TypeDef*)(GPIO_BASE + 0xC00U))
-#define GPIOE ((GPIO_TypeDef*)(GPIO_BASE + 0x1000U))
-#define GPIOF ((GPIO_TypeDef*)(GPIO_BASE + 0x1400U))
-#define GPIOG ((GPIO_TypeDef*)(GPIO_BASE + 0x1800U))
-#define GPIOH ((GPIO_TypeDef*)(GPIO_BASE + 0x1C00U))
+#define GPIOA ((GPIO_Reg_TypeDef*)GPIO_BASE)
+#define GPIOB ((GPIO_Reg_TypeDef*)(GPIO_BASE + 0x400U))
+#define GPIOC ((GPIO_Reg_TypeDef*)(GPIO_BASE + 0x800U))
+#define GPIOD ((GPIO_Reg_TypeDef*)(GPIO_BASE + 0xC00U))
+#define GPIOE ((GPIO_Reg_TypeDef*)(GPIO_BASE + 0x1000U))
+#define GPIOF ((GPIO_Reg_TypeDef*)(GPIO_BASE + 0x1400U))
+#define GPIOG ((GPIO_Reg_TypeDef*)(GPIO_BASE + 0x1800U))
+#define GPIOH ((GPIO_Reg_TypeDef*)(GPIO_BASE + 0x1C00U))
 
-// TYPES -----------------------------------------------------------
 typedef struct {
 	volatile uint32_t MODER;
 	volatile uint32_t OTYPER;
@@ -40,8 +40,10 @@ typedef struct {
 	volatile uint32_t LCKR;
 	volatile uint32_t AFRL;
 	volatile uint32_t AFRH;
-} GPIO_TypeDef;
+} GPIO_Reg_TypeDef;
 
+
+// GPIO Config Types ==============================================================
 typedef enum {
 	GPIO_MODE_INPUT = 0x00U,
 	GPIO_MODE_OUTPUT = 0x01U,
@@ -86,16 +88,30 @@ typedef enum {
 	GPIO_PIN_15 = 15U
 } GPIO_Pin;
 
+/**
+ * make sure to use the above enums when setting this init struct
+ * 
+ * mode - pin mode (out/in/AF/analog)
+ * type - push pull/open drain output signalling
+ * speed - output clock speed
+ * pupd - pullup/pulldown on pin
+ */
+typedef struct {
+	GPIO_Mode mode;
+	GPIO_OType otype;
+	GPIO_OSpeed ospeed;
+	GPIO_Pupd pupd;
+} GPIO_Init_TypeDef;
 
 
-// HAL FUNCTIONS -----------------------------------------------------------
+// HAL FUNCTIONS ==============================================================
 /**
  * @brief enables the AHB1 peripheral clock for given port
  * 
  * @param port - port to enable clock for
  * @return HAL_Status - HAL_OK or HAL_ERROR
  */
-HAL_Status GPIO_enable_clock(GPIO_TypeDef* port);
+HAL_Status GPIO_enable_clock(GPIO_Reg_TypeDef* port);
 
 
 /**
@@ -103,26 +119,23 @@ HAL_Status GPIO_enable_clock(GPIO_TypeDef* port);
  * 		  Use the above macros ONLY for function input
  * 		  You MUST enable the AHB1 clock for the port you are trying to configure FIRST
  * 
- * @param port base address of GPIO port (pointing to GPIO_TypeDef struct)
+ * @param port base address of GPIO port (pointing to GPIO_Reg_TypeDef struct)
  * @param pin 0-15 specifying which pin's settings to initialise
- * @param mode pin mode (out/in/AF/analog)
- * @param otype push pull/open drain output signalling
- * @param ospeed output clock speed
- * @param pupd pullup/pulldown on pin
+ * @param init_struct pointer to init struct which contains config info for this GPIO pin
  * @return HAL_Status - HAL_OK or HAL_ERROR
  */
-HAL_Status GPIO_init(GPIO_TypeDef* port, GPIO_Pin pin, GPIO_Mode mode, GPIO_OType otype, GPIO_OSpeed ospeed, GPIO_Pupd pupd);
+HAL_Status GPIO_init(GPIO_Reg_TypeDef* port, GPIO_Pin pin, const GPIO_Init_TypeDef* init_struct);
 
 
 /**
  * @brief Writes high/low to given pin at given port - USE MACROS
  * 
- * @param port base address of GPIO port (pointing to GPIO_TypeDef struct)
+ * @param port base address of GPIO port (pointing to GPIO_Reg_TypeDef struct)
  * @param pin 0-15 specifying which pin's settings to initialise
  * @param val PIN_SET or PIN_RESET
  * @return Hal_Status - HAL_OK or HAL_ERROR
  */
-HAL_Status GPIO_write_pin(GPIO_TypeDef* port, GPIO_Pin pin, PIN_State val);
+HAL_Status GPIO_write_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin, PIN_State val);
 
 
 /**
@@ -132,7 +145,7 @@ HAL_Status GPIO_write_pin(GPIO_TypeDef* port, GPIO_Pin pin, PIN_State val);
  * @param val 16 bit uint representing LSB = PIN0, MSB = PIN15 states
  * @return HAL_Status 
  */
-HAL_Status GPIO_write_port(GPIO_TypeDef* port, uint16_t val);
+HAL_Status GPIO_write_port(GPIO_Reg_TypeDef* port, uint16_t val);
 
 
 /**
@@ -142,7 +155,7 @@ HAL_Status GPIO_write_port(GPIO_TypeDef* port, uint16_t val);
  * @param pin
  * @return HAL_Status 
  */
-HAL_Status GPIO_toggle_pin(GPIO_TypeDef* port, GPIO_Pin pin);
+HAL_Status GPIO_toggle_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin);
 
 
 /**
@@ -152,7 +165,7 @@ HAL_Status GPIO_toggle_pin(GPIO_TypeDef* port, GPIO_Pin pin);
  * @param pin 
  * @return PIN_State - PIN_SET (1) or PIN_RESET (0) or -1 if error!!
  */
-PIN_State GPIO_read_pin(GPIO_TypeDef* port, GPIO_Pin pin);
+PIN_State GPIO_read_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin);
 
 /**
  * @brief Reads all 16 pins and writes into a 16 bit buffer pointer given. LSB = PIN0, MSB = PIN15
@@ -160,6 +173,6 @@ PIN_State GPIO_read_pin(GPIO_TypeDef* port, GPIO_Pin pin);
   * @param buffer - 16 bit pointer which is written into
   * @return HAL_Status 
  */
-HAL_Status GPIO_read_port(GPIO_TypeDef* port, uint16_t* buffer);
+HAL_Status GPIO_read_port(GPIO_Reg_TypeDef* port, uint16_t* buffer);
 
 #endif /* GPIO_DRIVER_GPIO_DRIVER_H_ */

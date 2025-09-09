@@ -17,7 +17,7 @@
  * 
  * It also has very weak input validation and mostly requires the user to use the macros properly
  */
-HAL_Status GPIO_enable_clock(GPIO_TypeDef* port) {
+HAL_Status GPIO_enable_clock(GPIO_Reg_TypeDef* port) {
     if ((uint32_t)port > (uint32_t)GPIOH || (uint32_t)port < (uint32_t)GPIOA) return HAL_ERROR;
 
     uint32_t shift = ((uint32_t)port - GPIO_BASE) / 0x400U;
@@ -30,7 +30,11 @@ HAL_Status GPIO_enable_clock(GPIO_TypeDef* port) {
  * I have chosen to use enums for the options for each pin configuration. 
  * This is for readability and ease of use, although they are not strict compile-time type checks
  */
-HAL_Status GPIO_init(GPIO_TypeDef* port, GPIO_Pin pin, GPIO_Mode mode, GPIO_OType otype, GPIO_OSpeed ospeed, GPIO_Pupd pupd) {
+HAL_Status GPIO_init(GPIO_Reg_TypeDef* port, GPIO_Pin pin, const GPIO_Init_TypeDef* init_struct) {
+    GPIO_Mode mode = init_struct->mode;
+    GPIO_OType otype = init_struct->otype;
+    GPIO_OSpeed ospeed = init_struct->ospeed;
+    GPIO_Pupd pupd = init_struct->pupd;
      if (
          port == NULL ||
          pin > GPIO_PIN_15 ||
@@ -62,7 +66,7 @@ HAL_Status GPIO_init(GPIO_TypeDef* port, GPIO_Pin pin, GPIO_Mode mode, GPIO_OTyp
 /**
  * Uses BSRR instead of ODR for atomic writes so it isn't interrupted by any ISR
  */
-HAL_Status GPIO_write_pin(GPIO_TypeDef* port, GPIO_Pin pin, PIN_State val) {
+HAL_Status GPIO_write_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin, PIN_State val) {
     if (
          port == NULL ||
          pin > GPIO_PIN_15 ||
@@ -82,7 +86,7 @@ HAL_Status GPIO_write_pin(GPIO_TypeDef* port, GPIO_Pin pin, PIN_State val) {
 /**
  * Again, this pedantically uses BSRR to prevent issues if interrupts touch the ODR
  */
-HAL_Status GPIO_write_port(GPIO_TypeDef* port, uint16_t val) {
+HAL_Status GPIO_write_port(GPIO_Reg_TypeDef* port, uint16_t val) {
     if (
         port == NULL
     ) return HAL_ERROR;
@@ -92,13 +96,21 @@ HAL_Status GPIO_write_port(GPIO_TypeDef* port, uint16_t val) {
     return HAL_OK;
 }
 
-HAL_Status GPIO_toggle_pin(GPIO_TypeDef* port, GPIO_Pin pin) {
+/**
+ * Instead of XOR toggling the ODR reg, I try to read from it, 
+ * and set the relevant bit in BSRR to prevent interrupt race conditions
+ */
+HAL_Status GPIO_toggle_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin) {
     if (
         port == NULL ||
         pin > GPIO_PIN_15
     ) return HAL_ERROR;
 
-    port->ODR ^= 0x01U << (uint32_t)pin;
+    if (port->ODR & (0x01U << (uint32_t)pin)) {
+        port->BSRR = 0x01U << ((uint32_t)pin + 16U);
+    } else {
+        port->BSRR = 0x01U << (uint32_t)pin;
+    }
     return HAL_OK;
 }
 
@@ -106,10 +118,11 @@ HAL_Status GPIO_toggle_pin(GPIO_TypeDef* port, GPIO_Pin pin) {
  * I made this return the pin value instead of using a pointer to a buffer and filling that out for simplicity
  * The tradeoff is I have to return -1 to indicate error instead of HAL_ERROR
  */
-PIN_State GPIO_read_pin(GPIO_TypeDef* port, GPIO_Pin pin) {
+PIN_State GPIO_read_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin) {
     if (
         port == NULL
-    )
+    ) return -1;
+
     if (port->IDR & (0x01U << pin)) {
         return PIN_SET;
     } 
@@ -120,7 +133,7 @@ PIN_State GPIO_read_pin(GPIO_TypeDef* port, GPIO_Pin pin) {
  * Again, I'm minimally checking inputs to prevent null pointer errors.
  * I chose to use a buffer instead of just returning the 16 bit uint so i could return HAL_Status
  */
-HAL_Status GPIO_read_port(GPIO_TypeDef* port, uint16_t* buffer) {
+HAL_Status GPIO_read_port(GPIO_Reg_TypeDef* port, uint16_t* buffer) {
     if (
         port == NULL ||
         buffer == NULL 
