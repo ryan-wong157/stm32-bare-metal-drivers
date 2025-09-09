@@ -69,6 +69,28 @@ typedef enum {
 	GPIO_PUPD_PD = 0x02U // Pull down
 } GPIO_Pupd;
 
+/**
+ * Make sure to check the datasheet to see what each AF does for your selected pin 
+ */
+typedef enum {
+	GPIO_AF0 = 0x00U,
+	GPIO_AF1 = 0x01U,
+	GPIO_AF2 = 0x02U,
+	GPIO_AF3 = 0x03U,
+	GPIO_AF4 = 0x04U,
+	GPIO_AF5 = 0x05U,
+	GPIO_AF6 = 0x06U,
+	GPIO_AF7 = 0x07U,
+	GPIO_AF8 = 0x08U,
+	GPIO_AF9 = 0x09U,
+	GPIO_AF10 = 0x0AU,
+	GPIO_AF11 = 0x0BU,
+	GPIO_AF12 = 0x0CU,
+	GPIO_AF13 = 0x0DU,
+	GPIO_AF14 = 0x0EU,
+	GPIO_AF15 = 0x0FU,
+} GPIO_AFx;
+
 // Maybe in the future I will write this to support multi-pin init (using OR bitmasks)
 typedef enum {
 	GPIO_PIN_0 = 0U,
@@ -96,12 +118,14 @@ typedef enum {
  * type - push pull/open drain output signalling
  * speed - output clock speed
  * pupd - pullup/pulldown on pin
+ * afx - alternate function value
  */
 typedef struct {
 	GPIO_Mode mode;
 	GPIO_OType otype;
 	GPIO_OSpeed ospeed;
 	GPIO_Pupd pupd;
+	GPIO_AFx afx;
 } GPIO_Init_TypeDef;
 
 
@@ -168,6 +192,7 @@ HAL_Status GPIO_toggle_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin);
  */
 PIN_State GPIO_read_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin);
 
+
 /**
  * @brief Reads all 16 pins and writes into a 16 bit buffer pointer given. LSB = PIN0, MSB = PIN15
  * 
@@ -175,6 +200,7 @@ PIN_State GPIO_read_pin(GPIO_Reg_TypeDef* port, GPIO_Pin pin);
   * @return HAL_Status 
  */
 HAL_Status GPIO_read_port(GPIO_Reg_TypeDef* port, uint16_t* buffer);
+
 
 /**
  * @brief Locks pins configuration registers (mode, otype, ospeed, pupd, afh, afl) based on the given bitmask
@@ -184,4 +210,6 @@ HAL_Status GPIO_read_port(GPIO_Reg_TypeDef* port, uint16_t* buffer);
  * 				 0000 1000 0001 0001 would lock pin 0, 4, 11
  */
 HAL_Status GPIO_lock_pins(GPIO_Reg_TypeDef* port, uint16_t pins);
+
+
 #endif /* GPIO_DRIVER_GPIO_DRIVER_H_ */

@@ -35,6 +35,7 @@ HAL_Status GPIO_init(GPIO_Reg_TypeDef* port, GPIO_Pin pin, const GPIO_Init_TypeD
     GPIO_OType otype = init_struct->otype;
     GPIO_OSpeed ospeed = init_struct->ospeed;
     GPIO_Pupd pupd = init_struct->pupd;
+    GPIO_AFx af_mask = init_struct->afx;
      if (
          port == NULL ||
          pin > GPIO_PIN_15 ||
@@ -59,6 +60,16 @@ HAL_Status GPIO_init(GPIO_Reg_TypeDef* port, GPIO_Pin pin, const GPIO_Init_TypeD
     // Configure PUPD
     port->PUPDR &= ~(0x03U << (pin * 2));
     port->PUPDR |= ((uint32_t)pupd << (pin * 2));
+
+    // Configure AF - depending on which pin, use low/high AF registers
+    if ((uint32_t)pin < 8) {
+        port->AFRL &= ~(0xF << (pin * 4));
+        port->AFRL |= ((uint32_t)af_mask << (pin * 4));
+    } else {
+        uint32_t new_pin = pin - 8;
+        port->AFRH &= ~(0xF << (new_pin * 4));
+        port->AFRH |= ((uint32_t)af_mask << (new_pin * 4));
+    }
 
     return HAL_OK;
 }
