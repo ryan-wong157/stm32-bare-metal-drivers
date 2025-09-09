@@ -8,7 +8,6 @@
  */
 
 #include <stdlib.h>
-
 #include "drivers/gpio_driver.h"
 
 /**
@@ -70,7 +69,7 @@ HAL_Status GPIO_write_pin(GPIO_TypeDef* port, GPIO_Pin pin, PIN_State val) {
          val > PIN_SET
     ) return HAL_ERROR;
 
-    // Using atomic set/reset for safety (note BSRR is WRITE-ONLY)
+    // Using atomic set/reset for safety (note BSRR is WRITE-ONLY. You shouldn't set bits using |= as it reads)
     // BSRR is cleared in the next clock cycle (it's like a momentary write command)
     if (val == PIN_RESET) {
         port->BSRR = (1U << ((uint32_t)pin + 16U));
@@ -78,4 +77,43 @@ HAL_Status GPIO_write_pin(GPIO_TypeDef* port, GPIO_Pin pin, PIN_State val) {
         port->BSRR = (1U << (uint32_t)pin);
     }
     return HAL_OK;
+}
+
+/**
+ * Again, this pedantically uses BSRR to prevent issues if interrupts touch the ODR
+ */
+HAL_Status GPIO_write_port(GPIO_TypeDef* port, uint16_t val) {
+    if (
+        port == NULL
+    ) return HAL_ERROR;
+    
+    uint16_t inv = ~val;
+    port->BSRR = (uint32_t)val | ((uint32_t)(inv) << 16);
+    return HAL_OK;
+}
+
+HAL_Status GPIO_toggle_pin(GPIO_TypeDef* port, GPIO_Pin pin) {
+    if (
+        port == NULL ||
+        pin > GPIO_PIN_15
+    ) return HAL_ERROR;
+
+    port->ODR ^= 0x01U << (uint32_t)pin;
+    return HAL_OK;
+}
+
+/**
+ * I made this return the pin value instead of using a pointer to a buffer and filling that out for simplicity
+ * The tradeoff is I have to return -1 to indicate error instead of HAL_ERROR
+ */
+PIN_State GPIO_read_pin(GPIO_TypeDef* port, GPIO_Pin pin) {
+    if (
+        port == NULL ||
+        pin > GPIO_PIN_15
+    ) return -1;
+
+    if (port->IDR & (0x01U << pin)) {
+        return PIN_SET;
+    } 
+    return PIN_RESET;
 }

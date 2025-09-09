@@ -12,7 +12,6 @@
 #define GPIO_DRIVER_GPIO_DRIVER_H_
 
 #include <stdint.h>
-
 #include "drivers/types.h"
 
 // REGISTERS --------------------------------------------------------
@@ -125,5 +124,34 @@ HAL_Status GPIO_init(GPIO_TypeDef* port, GPIO_Pin pin, GPIO_Mode mode, GPIO_OTyp
  */
 HAL_Status GPIO_write_pin(GPIO_TypeDef* port, GPIO_Pin pin, PIN_State val);
 
+
+/**
+ * @brief Writes entire port's 16 pins
+ * 
+ * @param port 
+ * @param val 16 bit uint representing LSB = PIN0, MSB = PIN15 states
+ * @return HAL_Status 
+ */
+HAL_Status GPIO_write_port(GPIO_TypeDef* port, uint16_t val);
+
+
+/**
+ * @brief Toggles given pin from high->low or low->high depending on current state
+ * 
+ * @param port 
+ * @param pin
+ * @return HAL_Status 
+ */
+HAL_Status GPIO_toggle_pin(GPIO_TypeDef* port, GPIO_Pin pin);
+
+
+/**
+ * @brief Reads value at pin, port and returns it
+ * 
+ * @param port 
+ * @param pin 
+ * @return PIN_State - PIN_SET (1) or PIN_RESET (0) or -1 if error!!
+ */
+PIN_State GPIO_read_pin(GPIO_TypeDef* port, GPIO_Pin pin);
 
 #endif /* GPIO_DRIVER_GPIO_DRIVER_H_ */
