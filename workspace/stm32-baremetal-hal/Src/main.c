@@ -38,3 +38,7 @@ void GPIO_test_init() {
     GPIO_enable_clock(GPIOA);
     GPIO_init(GPIOA, GPIO_PIN_5, &init);
 }
+
+void GPIO_test() {
+    
+}
