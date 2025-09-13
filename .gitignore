@@ -25,3 +25,5 @@ Thumbs.db
 *.bak
 *.tmp
 *.log
+
+.vscode
