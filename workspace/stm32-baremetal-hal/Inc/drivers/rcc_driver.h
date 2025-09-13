@@ -3,6 +3,7 @@
 *
 * Header file for rcc_driver.c
 * Contains functions which configure and enable the clock settings and various bus clock prescalers
+* For safety, these functions should only be called on STARTUP, before each peripheral's clocks are enabled!
 *
 *  Written by Ryan Wong
 */
@@ -14,7 +15,7 @@
 
 // Globals and Constants =========================================================
 // Global variable specifying HCLK frequency in Hz (driving the CPU and SysTick)
-extern uint32_t HCLK_frequency;
+extern volatile uint32_t HCLK_frequency;
 
 // HSI is 16MHz for the STM32F4 (dunno if its a cortex M4 default or vendor specific)
 #define HSI_FREQ 16000000U
@@ -60,13 +61,29 @@ void update_hclk();
  * The clocks are divided with the new prescaler factor from 1 to 16 AHB cycles after HPRE write.
  * CAUTION - the AHB clock frequency must be at least 25MHz when Ethernet is used
  * 
- * @param div - Enum specifying the divider value
+ * @param div - Enum specifying the prescaler
  * @return HAL_Status 
  */
 HAL_Status RCC_set_AHB_prescaler(RCC_AHB_Prescaler div);
 
+/**
+ * @brief Updates the APB low speed (1) prescaler.
+ * CAUTION - the APB1 clock frequency (PCLK1) must NOT exceed 45MHz!
+ * This should be enforced by this function, but note it will return HAL_ERROR if attempted
+ * 
+ * @param div - enum above specifying the prescaler
+ * @return HAL_Status 
+ */
+HAL_Status RCC_set_APB1_prescaler(RCC_APB_Prescaler div);
 
-// HAL_Status RCC_set_APB1_prescaler();
-// HAL_Status RCC_set_APB2_prescaler();
+/**
+ * @brief Updates the APB high speed (2) prescaler.
+ * CAUTION - the APB2 clock frequency (PCLK2) must NOT exceed 90MHz!
+ * This should be enforced by this function
+ * 
+ * @param div - enum above specifying the prescaler
+ * @return HAL_Status 
+ */
+HAL_Status RCC_set_APB2_prescaler(RCC_APB_Prescaler div);
 
 #endif

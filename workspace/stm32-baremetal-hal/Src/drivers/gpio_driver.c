@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include "drivers/gpio_driver.h"
 
+// HAL FUNCTIONS ==============================================================
+
 /**
  * This is a bit hacky, I'm not sure if it's ok or not
  * it basically assumes base addresses for all GPIO registers are 0x400 spaced (which they are for the stm32f4)
