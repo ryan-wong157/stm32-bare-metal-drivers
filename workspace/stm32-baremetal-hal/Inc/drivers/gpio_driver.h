@@ -8,8 +8,8 @@
  *      Author: Ryan Wong
  */
 
-#ifndef GPIO_DRIVER_GPIO_DRIVER_H_
-#define GPIO_DRIVER_GPIO_DRIVER_H_
+#ifndef GPIO_DRIVER_H_
+#define GPIO_DRIVER_H_
 
 #include <stdint.h>
 #include "drivers/types.h"

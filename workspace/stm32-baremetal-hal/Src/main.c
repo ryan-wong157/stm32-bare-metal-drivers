@@ -5,40 +5,13 @@
  */
 
 #include <stdint.h>
-
 #include "drivers/gpio_driver.h"
+#include "test/gpio_driver_test.h"
 
-void GPIO_test_init();
-/*
-Still to test:
-- toggle
-- write port
-- read pin
-- read port
-- lock pins
-- AF capabilities
-*/
 int main(void) {
     GPIO_test_init();
     // MAIN LOOP --------------------------------------------
 	for(;;) {
-        GPIO_write_pin(GPIOA, GPIO_PIN_5, PIN_SET);
+        GPIO_test();
     }
-}
-
-void GPIO_test_init() {
-    GPIO_Init_TypeDef init;
-    init.mode = GPIO_MODE_OUTPUT;
-    init.otype = GPIO_OTYPE_PP;
-    init.ospeed = GPIO_OSPEED_LOW;
-    init.pupd = GPIO_PUPD_NONE;
-    init.afx = GPIO_AF0;
-    init.init_out_state = PIN_RESET;
-
-    GPIO_enable_clock(GPIOA);
-    GPIO_init(GPIOA, GPIO_PIN_5, &init);
-}
-
-void GPIO_test() {
-    
 }
